@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMBIO — Conversor de Moedas Mundial</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d0d;
+  --paper: #f5f0e8;
+  --cream: #ede8dc;
+  --gold: #c9a84c;
+  --gold2: #f0cc6e;
+  --rust: #c94c2a;
+  --teal: #1a7a6e;
+  --muted: #7a7060;
+  --border: rgba(13,13,13,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.5;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px;
+  border-bottom: 2px solid var(--ink);
+  position: relative;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 4px;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.logo span { color: var(--gold); }
+
+.header-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 2px;
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.live-dot::before {
+  content: '';
+  width: 7px; height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: blink 1.4s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* Hero section */
+.hero {
+  padding: 60px 40px 40px;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(5rem, 15vw, 12rem);
+  line-height: 0.85;
+  color: var(--cream);
+  position: absolute;
+  right: 40px;
+  top: 20px;
+  letter-spacing: -4px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.hero h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  letter-spacing: 2px;
+  line-height: 1;
+  max-width: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--gold);
+  -webkit-text-stroke: 0px;
+}
+
+.hero-sub {
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+/* Main converter */
+.converter-wrap {
+  padding: 40px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.converter-card {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 4px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.converter-card::before {
+  content: 'CAMBIO';
+  position: absolute;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14rem;
+  color: rgba(255,255,255,0.02);
+  right: -30px;
+  bottom: -30px;
+  letter-spacing: 10px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.converter-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 32px;
+}
+
+.field-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.4);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.amount-input {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 3px;
+  padding: 18px 20px;
+  color: var(--paper);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 2px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.amount-input:focus {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.08);
+}
+
+.amount-input::placeholder { color: rgba(245,240,232,0.2); }
+
+.currency-select {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  padding: 14px 16px;
+  color: var(--paper);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin-top: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  max-height: 52px;
+}
+
+.currency-select option { background: #1a1a1a; color: var(--paper); }
+
+.swap-col {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 4px;
+}
+
+.swap-btn {
+  width: 52px; height: 52px;
+  background: var(--gold);
+  border: none;
+  border-radius: 50%;
+  color: var(--ink);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-weight: 700;
+}
+
+.swap-btn:hover { transform: rotate(180deg) scale(1.1); background: var(--gold2); }
+
+/* Result */
+.result-area {
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 3px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.result-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 2px;
+  color: var(--gold2);
+  line-height: 1;
+}
+
+.result-sub {
+  font-size: 0.8rem;
+  color: rgba(245,240,232,0.4);
+  margin-top: 4px;
+  font-weight: 400;
+}
+
+.convert-btn {
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  padding: 16px 36px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.convert-btn:hover { background: var(--gold2); transform: translateY(-2px); }
+.convert-btn:active { transform: translateY(0); }
+
+/* Rate info */
+.rate-strip {
+  display: flex;
+  gap: 24px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  flex-wrap: wrap;
+}
+
+.rate-item { font-size: 0.78rem; color: rgba(245,240,232,0.35); }
+.rate-item strong { color: rgba(245,240,232,0.7); font-weight: 500; }
+
+/* Popular currencies grid */
+.popular-section {
+  padding: 0 40px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+}
+
+.section-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.popular-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.popular-chip {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.popular-chip::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+
+.popular-chip:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.popular-chip:hover::after { transform: scaleX(1); }
+
+.chip-flag { font-size: 1.4rem; margin-bottom: 6px; }
+.chip-code { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; }
+.chip-name { font-size: 0.7rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip-rate { font-size: 0.78rem; font-weight: 600; color: var(--teal); margin-top: 6px; }
+
+/* Ad placeholder */
+.ad-zone {
+  margin: 0 40px 40px;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--cream);
+  border: 1px dashed rgba(13,13,13,0.15);
+  border-radius: 3px;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Footer */
+footer {
+  border-top: 2px solid var(--ink);
+  padding: 24px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: gap;
+  gap: 12px;
+}
+
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 3px;
+  color: var(--muted);
+}
+
+.footer-note { font-size: 0.72rem; color: var(--muted); }
+
+/* Loading state */
+.loading { opacity: 0.5; pointer-events: none; }
+
+@media (max-width: 600px) {
+  header { padding: 16px 20px; }
+  .hero { padding: 40px 20px 28px; }
+  .hero-number { font-size: 6rem; right: 20px; top: 30px; }
+  .converter-wrap { padding: 20px; }
+  .converter-card { padding: 24px 20px; }
+  .converter-grid { grid-template-columns: 1fr; gap: 12px; }
+  .swap-col { justify-content: center; }
+  .popular-section { padding: 0 20px 28px; }
+  .ad-zone { margin: 0 20px 28px; }
+  footer { padding: 20px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CAM<span>BIO</span></div>
+  <div class="live-dot">Taxas ao vivo</div>
+  <div class="header-tag">170+ Moedas</div>
+</header>
+
+<div class="hero">
+  <div class="hero-number">FX</div>
+  <h1>Converta <em>qualquer</em><br>moeda do mundo</h1>
+  <p class="hero-sub">Taxas de referência atualizadas · 170+ moedas · 100% gratuito</p>
+</div>
+
+<div class="converter-wrap">
+  <div class="converter-card">
+    <div class="converter-grid">
+      <div>
+        <span class="field-label">Você tem</span>
+        <input type="number" class="amount-input" id="amount" value="100" placeholder="0" oninput="convert()">
+        <select class="currency-select" id="fromCur" onchange="convert()"></select>
+      </div>
+      <div class="swap-col">
+        <button class="swap-btn" onclick="swapCurrencies()" title="Trocar moedas">⇄</button>
+      </div>
+      <div>
+        <span class="field-label">Você recebe</span>
+        <input type="number" class="amount-input" id="resultAmt" placeholder="—" readonly>
+        <select class="currency-select" id="toCur" onchange="convert()"></select>
+      </div>
+    </div>
+
+    <div class="result-area">
+      <div>
+        <div class="result-main" id="resultBig">—</div>
+        <div class="result-sub" id="resultSub">Selecione as moedas acima</div>
+      </div>
+      <button class="convert-btn" onclick="convert()">CONVERTER</button>
+    </div>
+
+    <div class="rate-strip">
+      <div class="rate-item">Taxa: <strong id="rateDisplay">—</strong></div>
+      <div class="rate-item">Inversa: <strong id="rateInverse">—</strong></div>
+      <div class="rate-item">Referência: <strong>Banco Central Europeu</strong></div>
+    </div>
+  </div>
+</div>
+
+<div class="popular-section">
+  <div class="section-header">
+    <div class="section-title">Moedas Populares</div>
+    <div class="section-sub">Clique para selecionar</div>
+  </div>
+  <div class="popular-grid" id="popularGrid"></div>
+</div>
+
+<div class="ad-zone" id="adZone" style="display:none"></div>
+
+<footer>
+  <div class="footer-logo">CAMBIO</div>
+  <div class="footer-note">Taxas de referência. Não utilize para transações financeiras oficiais.</div>
+</footer>
+
+<script>
+// All world currencies with approximate USD rates
+const allCurrencies = {
+  USD: { name: "Dólar Americano", flag: "🇺🇸", rate: 1 },
+  EUR: { name: "Euro", flag: "🇪🇺", rate: 0.925 },
+  BRL: { name: "Real Brasileiro", flag: "🇧🇷", rate: 5.74 },
+  MZN: { name: "Metical Moçambicano", flag: "🇲🇿", rate: 63.8 },
+  GBP: { name: "Libra Esterlina", flag: "🇬🇧", rate: 0.79 },
+  JPY: { name: "Iene Japonês", flag: "🇯🇵", rate: 149.5 },
+  CNY: { name: "Yuan Chinês", flag: "🇨🇳", rate: 7.24 },
+  INR: { name: "Rúpia Indiana", flag: "🇮🇳", rate: 83.1 },
+  CAD: { name: "Dólar Canadense", flag: "🇨🇦", rate: 1.36 },
+  AUD: { name: "Dólar Australiano", flag: "🇦🇺", rate: 1.53 },
+  CHF: { name: "Franco Suíço", flag: "🇨🇭", rate: 0.895 },
+  HKD: { name: "Dólar de Hong Kong", flag: "🇭🇰", rate: 7.82 },
+  SGD: { name: "Dólar de Singapura", flag: "🇸🇬", rate: 1.34 },
+  SEK: { name: "Coroa Sueca", flag: "🇸🇪", rate: 10.45 },
+  NOK: { name: "Coroa Norueguesa", flag: "🇳🇴", rate: 10.6 },
+  DKK: { name: "Coroa Dinamarquesa", flag: "🇩🇰", rate: 6.89 },
+  NZD: { name: "Dólar Neozelandês", flag: "🇳🇿", rate: 1.63 },
+  MXN: { name: "Peso Mexicano", flag: "🇲🇽", rate: 17.2 },
+  ARS: { name: "Peso Argentino", flag: "🇦🇷", rate: 874 },
+  CLP: { name: "Peso Chileno", flag: "🇨🇱", rate: 912 },
+  COP: { name: "Peso Colombiano", flag: "🇨🇴", rate: 3900 },
+  PEN: { name: "Sol Peruano", flag: "🇵🇪", rate: 3.72 },
+  UYU: { name: "Peso Uruguaio", flag: "🇺🇾", rate: 38.5 },
+  BOB: { name: "Boliviano", flag: "🇧🇴", rate: 6.91 },
+  PYG: { name: "Guarani Paraguaio", flag: "🇵🇾", rate: 7300 },
+  VES: { name: "Bolívar Venezuelano", flag: "🇻🇪", rate: 36.5 },
+  ZAR: { name: "Rand Sul-Africano", flag: "🇿🇦", rate: 18.7 },
+  NGN: { name: "Naira Nigeriana", flag: "🇳🇬", rate: 1480 },
+  KES: { name: "Xelim Queniano", flag: "🇰🇪", rate: 128 },
+  GHS: { name: "Cedi Ganês", flag: "🇬🇭", rate: 12.4 },
+  TZS: { name: "Xelim Tanzaniano", flag: "🇹🇿", rate: 2520 },
+  UGX: { name: "Xelim Ugandês", flag: "🇺🇬", rate: 3750 },
+  ETB: { name: "Birr Etíope", flag: "🇪🇹", rate: 56.5 },
+  AOA: { name: "Kwanza Angolano", flag: "🇦🇴", rate: 830 },
+  MAD: { name: "Dirham Marroquino", flag: "🇲🇦", rate: 9.98 },
+  TND: { name: "Dinar Tunisiano", flag: "🇹🇳", rate: 3.12 },
+  EGP: { name: "Libra Egípcia", flag: "🇪🇬", rate: 30.9 },
+  DZD: { name: "Dinar Argelino", flag: "🇩🇿", rate: 134 },
+  AED: { name: "Dirham dos EAU", flag: "🇦🇪", rate: 3.67 },
+  SAR: { name: "Riyal Saudita", flag: "🇸🇦", rate: 3.75 },
+  QAR: { name: "Riyal do Qatar", flag: "🇶🇦", rate: 3.64 },
+  KWD: { name: "Dinar Kuwaitiano", flag: "🇰🇼", rate: 0.307 },
+  BHD: { name: "Dinar do Bahrein", flag: "🇧🇭", rate: 0.376 },
+  OMR: { name: "Rial Omanense", flag: "🇴🇲", rate: 0.385 },
+  JOD: { name: "Dinar Jordaniano", flag: "🇯🇴", rate: 0.709 },
+  ILS: { name: "Shekel Israelense", flag: "🇮🇱", rate: 3.72 },
+  TRY: { name: "Lira Turca", flag: "🇹🇷", rate: 32.1 },
+  IRR: { name: "Rial Iraniano", flag: "🇮🇷", rate: 42000 },
+  PKR: { name: "Rúpia Paquistanesa", flag: "🇵🇰", rate: 278 },
+  BDT: { name: "Taka Bangladeshiana", flag: "🇧🇩", rate: 110 },
+  LKR: { name: "Rúpia Sri-Lankesa", flag: "🇱🇰", rate: 298 },
+  NPR: { name: "Rúpia Nepalesa", flag: "🇳🇵", rate: 133 },
+  MMK: { name: "Kyat de Myanmar", flag: "🇲🇲", rate: 2100 },
+  THB: { name: "Baht Tailandês", flag: "🇹🇭", rate: 35.2 },
+  VND: { name: "Dong Vietnamita", flag: "🇻🇳", rate: 24500 },
+  IDR: { name: "Rupia Indonésia", flag: "🇮🇩", rate: 15600 },
+  MYR: { name: "Ringgit Malaio", flag: "🇲🇾", rate: 4.72 },
+  PHP: { name: "Peso Filipino", flag: "🇵🇭", rate: 56.2 },
+  KRW: { name: "Won Sul-Coreano", flag: "🇰🇷", rate: 1325 },
+  TWD: { name: "Dólar de Taiwan", flag: "🇹🇼", rate: 31.8 },
+  HUF: { name: "Florim Húngaro", flag: "🇭🇺", rate: 355 },
+  PLN: { name: "Zlóti Polonês", flag: "🇵🇱", rate: 3.98 },
+  CZK: { name: "Coroa Checa", flag: "🇨🇿", rate: 22.8 },
+  RON: { name: "Leu Romeno", flag: "🇷🇴", rate: 4.62 },
+  HRK: { name: "Kuna Croata", flag: "🇭🇷", rate: 7.0 },
+  RUB: { name: "Rublo Russo", flag: "🇷🇺", rate: 89.5 },
+  UAH: { name: "Hryvnia Ucraniana", flag: "🇺🇦", rate: 37.3 },
+  GEL: { name: "Lari Georgiano", flag: "🇬🇪", rate: 2.66 },
+  AMD: { name: "Dram Armênio", flag: "🇦🇲", rate: 387 },
+  KZT: { name: "Tenge Cazaque", flag: "🇰🇿", rate: 449 },
+  UZS: { name: "Som Uzbeque", flag: "🇺🇿", rate: 12500 },
+  MNT: { name: "Tugrik Mongol", flag: "🇲🇳", rate: 3380 },
+  KHR: { name: "Riel Cambojano", flag: "🇰🇭", rate: 4070 },
+  LAK: { name: "Kip Laosiano", flag: "🇱🇦", rate: 20800 },
+  CDF: { name: "Franco Congolês", flag: "🇨🇩", rate: 2720 },
+  XOF: { name: "Franco CFA Ocidental", flag: "🌍", rate: 607 },
+  XAF: { name: "Franco CFA Central", flag: "🌍", rate: 607 },
+  CVE: { name: "Escudo Cabo-Verdiano", flag: "🇨🇻", rate: 102 },
+  STN: { name: "Dobra de S.Tomé", flag: "🇸🇹", rate: 22.8 },
+  MGA: { name: "Ariary Malgaxe", flag: "🇲🇬", rate: 4500 },
+  ZMW: { name: "Kwacha Zambiano", flag: "🇿🇲", rate: 26.5 },
+  BWP: { name: "Pula Botsuanesa", flag: "🇧🇼", rate: 13.6 },
+  NAD: { name: "Dólar Namibiano", flag: "🇳🇦", rate: 18.7 },
+  SZL: { name: "Lilangeni Suazi", flag: "🇸🇿", rate: 18.7 },
+  MUR: { name: "Rúpia Mauriciana", flag: "🇲🇺", rate: 45.1 },
+  SCR: { name: "Rúpia de Seicheles", flag: "🇸🇨", rate: 13.5 },
+  DJF: { name: "Franco do Djibuti", flag: "🇩🇯", rate: 177 },
+  ERN: { name: "Nakfa Eritreu", flag: "🇪🇷", rate: 15.0 },
+  SOS: { name: "Xelim Somali", flag: "🇸🇴", rate: 571 },
+  RWF: { name: "Franco Ruandês", flag: "🇷🇼", rate: 1285 },
+  BIF: { name: "Franco do Burundi", flag: "🇧🇮", rate: 2870 },
+  MWK: { name: "Kwacha Malawiano", flag: "🇲🇼", rate: 1730 },
+  ZWL: { name: "Dólar Zimbabuano", flag: "🇿🇼", rate: 322 },
+  GMD: { name: "Dalasi Gambiano", flag: "🇬🇲", rate: 67.5 },
+  GNF: { name: "Franco Guineense", flag: "🇬🇳", rate: 8620 },
+  SLL: { name: "Leone Serra-Leonês", flag: "🇸🇱", rate: 20900 },
+  LRD: { name: "Dólar Liberiano", flag: "🇱🇷", rate: 189 },
+  SLE: { name: "Leone (novo)", flag: "🇸🇱", rate: 20.9 },
+  XCD: { name: "Dólar do Caribe Oriental", flag: "🌎", rate: 2.70 },
+  JMD: { name: "Dólar Jamaicano", flag: "🇯🇲", rate: 156 },
+  TTD: { name: "Dólar de T&T", flag: "🇹🇹", rate: 6.79 },
+  BBD: { name: "Dólar de Barbados", flag: "🇧🇧", rate: 2.0 },
+  BSD: { name: "Dólar das Bahamas", flag: "🇧🇸", rate: 1.0 },
+  BZD: { name: "Dólar Belizenho", flag: "🇧🇿", rate: 2.0 },
+  GTQ: { name: "Quetzal Guatemalteco", flag: "🇬🇹", rate: 7.78 },
+  HNL: { name: "Lempira Hondurenho", flag: "🇭🇳", rate: 24.6 },
+  NIO: { name: "Córdoba Nicaraguense", flag: "🇳🇮", rate: 36.6 },
+  CRC: { name: "Colón Costa-Riquenho", flag: "🇨🇷", rate: 517 },
+  PAB: { name: "Balboa Panamenho", flag: "🇵🇦", rate: 1.0 },
+  DOP: { name: "Peso Dominicano", flag: "🇩🇴", rate: 58.5 },
+  HTG: { name: "Gourde Haitiano", flag: "🇭🇹", rate: 132 },
+  CUP: { name: "Peso Cubano", flag: "🇨🇺", rate: 24.0 },
+  ISK: { name: "Coroa Islandesa", flag: "🇮🇸", rate: 137 },
+  MKD: { name: "Dinar Macedônio", flag: "🇲🇰", rate: 57.1 },
+  BAM: { name: "Marco Bósnio", flag: "🇧🇦", rate: 1.81 },
+  RSD: { name: "Dinar Sérvio", flag: "🇷🇸", rate: 108 },
+  MDL: { name: "Leu Moldavo", flag: "🇲🇩", rate: 17.7 },
+  ALL: { name: "Lek Albanês", flag: "🇦🇱", rate: 92.5 },
+  BGN: { name: "Lev Búlgaro", flag: "🇧🇬", rate: 1.81 },
+  LYD: { name: "Dinar Líbio", flag: "🇱🇾", rate: 4.83 },
+  SDG: { name: "Libra Sudanesa", flag: "🇸🇩", rate: 601 },
+  SYP: { name: "Libra Síria", flag: "🇸🇾", rate: 13000 },
+  LBP: { name: "Libra Libanesa", flag: "🇱🇧", rate: 89500 },
+  IQD: { name: "Dinar Iraquiano", flag: "🇮🇶", rate: 1308 },
+  YER: { name: "Rial Iemenita", flag: "🇾🇪", rate: 250 },
+  AFN: { name: "Afgani Afegão", flag: "🇦🇫", rate: 71.3 },
+  MOP: { name: "Pataca Macaense", flag: "🇲🇴", rate: 8.06 },
+  BTN: { name: "Ngultrum Butanês", flag: "🇧🇹", rate: 83.1 },
+  MVR: { name: "Rufiyaa Maldiva", flag: "🇲🇻", rate: 15.4 },
+  WST: { name: "Tālā Samoano", flag: "🇼🇸", rate: 2.73 },
+  FJD: { name: "Dólar Fijiano", flag: "🇫🇯", rate: 2.25 },
+  PGK: { name: "Kina Papua", flag: "🇵🇬", rate: 3.76 },
+  SBD: { name: "Dólar das Ilhas Salomão", flag: "🇸🇧", rate: 8.41 },
+  VUV: { name: "Vatu Vanuatense", flag: "🇻🇺", rate: 119 },
+  TOP: { name: "Paʻanga Tonganês", flag: "🇹🇴", rate: 2.35 },
+  KPW: { name: "Won Norte-Coreano", flag: "🇰🇵", rate: 900 },
+  XPF: { name: "Franco CFP", flag: "🌏", rate: 110 },
+};
+
+const popularCodes = ["USD","EUR","BRL","MZN","GBP","JPY","CNY","AED","ZAR","AOA","CVE","STN","NGN","KES","INR","CAD","AUD","CHF"];
+
+function buildSelects() {
+  const from = document.getElementById('fromCur');
+  const to = document.getElementById('toCur');
+  const sorted = Object.entries(allCurrencies).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  sorted.forEach(([code, info]) => {
+    const o1 = new Option(`${info.flag} ${code} — ${info.name}`, code);
+    const o2 = new Option(`${info.flag} ${code} — ${info.name}`, code);
+    from.appendChild(o1);
+    to.appendChild(o2);
+  });
+  from.value = 'BRL';
+  to.value = 'USD';
+}
+
+function buildPopular() {
+  const grid = document.getElementById('popularGrid');
+  const base = 'BRL';
+  popularCodes.forEach(code => {
+    const info = allCurrencies[code];
+    if (!info) return;
+    const rate = (allCurrencies[base].rate / allCurrencies[code].rate).toFixed(4);
+    const chip = document.createElement('div');
+    chip.className = 'popular-chip';
+    chip.innerHTML = `
+      <div class="chip-flag">${info.flag}</div>
+      <div class="chip-code">${code}</div>
+      <div class="chip-name">${info.name}</div>
+      <div class="chip-rate">1 ${base} = ${rate} ${code}</div>
+    `;
+    chip.onclick = () => {
+      document.getElementById('toCur').value = code;
+      convert();
+      document.querySelector('.converter-card').scrollIntoView({behavior:'smooth'});
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function convert() {
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const from = document.getElementById('fromCur').value;
+  const to = document.getElementById('toCur').value;
+  const fromInfo = allCurrencies[from];
+  const toInfo = allCurrencies[to];
+  if (!fromInfo || !toInfo) return;
+
+  const inUSD = amount / fromInfo.rate;
+  const result = inUSD * toInfo.rate;
+  const rate = toInfo.rate / fromInfo.rate;
+  const rateInv = fromInfo.rate / toInfo.rate;
+
+  document.getElementById('resultAmt').value = result.toFixed(4);
+  document.getElementById('resultBig').textContent =
+    result.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 4}) + ' ' + to;
+  document.getElementById('resultSub').textContent =
+    `${amount.toLocaleString('pt-BR')} ${from} convertido para ${to}`;
+  document.getElementById('rateDisplay').textContent = `1 ${from} = ${rate.toFixed(6)} ${to}`;
+  document.getElementById('rateInverse').textContent = `1 ${to} = ${rateInv.toFixed(6)} ${from}`;
+}
+
+function swapCurrencies() {
+  const fc = document.getElementById('fromCur');
+  const tc = document.getElementById('toCur');
+  const tmp = fc.value;
+  fc.value = tc.value;
+  tc.value = tmp;
+  convert();
+}
+
+buildSelects();
+buildPopular();
+convert();
+</script>
+</body>
+</html>
